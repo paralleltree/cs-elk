@@ -1,0 +1,58 @@
+filebeat.inputs:
+
+- type: log
+  enabled: true
+  paths:
+    - /app_path/shared/log/gc_stats_production.json*
+  fields:
+    type: gc-stats-sidekiq
+    app: circlesearch
+  exclude_files: ['.gz$']
+
+- type: log
+  enabled: true
+  paths:
+    - /app_path/shared/log/sidekiq.log*
+  fields:
+    type: sidekiq
+    app: circlesearch
+  exclude_files: ['.pos$', '.gz$']
+
+- type: log
+  enabled: true
+  paths:
+    - /app_path/shared/log/production.log*
+  fields:
+    type: activejob
+    app: circlesearch
+  exclude_files: ['.pos$', '.gz$']
+  include_lines: ['ActiveJob']
+
+- type: log
+  enabled: true
+  paths:
+    - /var/log/nginx/access.circlesearch.ltsv.log*
+  fields:
+    type: nginx
+    app: circlesearch
+
+  exclude_files: ['.pos$', '.gz$']
+
+filebeat.config.modules:
+  path: ${path.config}/modules.d/*.yml
+  reload.enabled: false
+
+output.logstash:
+  hosts: ["host:5044"]
+
+  ssl:
+    enabled: true
+    certificate_authorities: ["/path/to/trusted/cert"]
+    certificate: "/path/to/cert"
+    key: "/path/to/private_key"
+
+processors:
+  - add_host_metadata: ~
+  - add_cloud_metadata: ~
+  - add_docker_metadata: ~
+  - add_kubernetes_metadata: ~
